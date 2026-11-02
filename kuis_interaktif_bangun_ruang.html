@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoMaster 3D - Kuis Interaktif Bangun Ruang</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .fade-in {
+            animation: fadeIn 0.25s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Header Navigation (GeoMaster 3D Style) -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+            <!-- Brand & Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-extrabold text-xl shadow-md shadow-indigo-200">
+                    <i class="fa-solid fa-cube"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-slate-900 text-lg leading-tight tracking-tight">GeoMaster 3D</h1>
+                    <p class="text-xs text-slate-500 font-medium">Kuis Interaktif Bangun Ruang • 60 Soal Kreatif & Advance</p>
+                </div>
+            </div>
+
+            <!-- Right Score & Progress Bar -->
+            <div class="flex items-center gap-6">
+                <!-- Score Pill -->
+                <div class="bg-indigo-50/70 border border-indigo-100 px-4 py-1.5 rounded-full flex items-center gap-2">
+                    <span class="text-xs text-slate-500 font-medium">Skor:</span>
+                    <span id="score-text" class="text-sm font-extrabold text-indigo-600">0 / 60</span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="hidden sm:flex items-center gap-3">
+                    <span class="text-xs text-slate-500 font-medium">Progress:</span>
+                    <div class="w-32 bg-slate-100 rounded-full h-2.5 border border-slate-200 overflow-hidden">
+                        <div id="progress-bar-fill" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <span id="progress-percent" class="text-xs font-bold text-slate-700">0%</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container: 3 Column Layout like GeoMaster 3D -->
+    <main class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- LEFT PANEL: Navigation Grid (Col 1-3) -->
+            <div class="lg:col-span-3 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col gap-4">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-list-ul text-indigo-600"></i> Daftar Soal
+                    </h3>
+                    <button onclick="resetQuiz()" class="text-xs text-rose-500 hover:text-rose-600 font-semibold flex items-center gap-1 transition cursor-pointer">
+                        <i class="fa-solid fa-rotate-right"></i> Reset Kuis
+                    </button>
+                </div>
+
+                <!-- Legend status -->
+                <div class="grid grid-cols-2 gap-y-2 gap-x-1 text-[11px] text-slate-500 font-medium bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
+                    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-slate-200 inline-block"></span> Belum diisi</div>
+                    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Benar</div>
+                    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Salah</div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="flex items-center gap-1 overflow-x-auto py-1 border-b border-slate-100">
+                    <button onclick="setFilter('all')" id="filter-all" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white">Semua</button>
+                    <button onclick="setFilter('kubus')" id="filter-kubus" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition bg-slate-100 text-slate-600 hover:bg-slate-200">Kubus</button>
+                    <button onclick="setFilter('balok')" id="filter-balok" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition bg-slate-100 text-slate-600 hover:bg-slate-200">Balok</button>
+                    <button onclick="setFilter('prisma')" id="filter-prisma" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition bg-slate-100 text-slate-600 hover:bg-slate-200">Prisma</button>
+                </div>
+
+                <!-- Numbers Grid -->
+                <div id="numbers-grid" class="grid grid-cols-5 gap-2 max-h-[380px] overflow-y-auto pr-1">
+                    <!-- Dynamic Number Buttons -->
+                </div>
+            </div>
+
+            <!-- MIDDLE PANEL: 3D Dark Canvas Visualizer (Col 4-7) -->
+            <div class="lg:col-span-4 bg-[#0f172a] rounded-2xl p-6 min-h-[420px] flex flex-col justify-between items-center relative overflow-hidden border border-slate-800 shadow-md">
+                <!-- Badges on top of Dark Visualizer -->
+                <div class="w-full flex justify-between items-center z-10">
+                    <span id="canvas-badge-shape" class="px-3 py-1 bg-indigo-500/20 text-indigo-300 text-[11px] font-bold rounded-full uppercase tracking-wider border border-indigo-500/30">
+                        KUBUS
+                    </span>
+                    <span id="canvas-badge-sub" class="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-[11px] font-bold rounded-full border border-emerald-500/30">
+                        Volume
+                    </span>
+                </div>
+
+                <!-- Center SVG Illustration -->
+                <div id="shape-illustration" class="my-auto flex items-center justify-center w-full py-6">
+                    <!-- Dynamic SVG Diagram -->
+                </div>
+
+                <!-- Footer hint under illustration -->
+                <div class="text-slate-400 text-xs font-medium text-center z-10">
+                    <i class="fa-solid fa-cube text-indigo-400 mr-1"></i> Visualisasi Bangun Ruang 3D
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Question Text & Options (Col 8-12) -->
+            <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between min-h-[420px]">
+                <div>
+                    <!-- Question Counter Header -->
+                    <div class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider mb-3">
+                        SOAL <span id="current-q-num">1</span> DARI <span id="total-filtered-num">60</span>
+                    </div>
+
+                    <!-- Question Text -->
+                    <h2 id="question-text" class="text-base sm:text-lg font-bold text-slate-800 leading-relaxed mb-4">
+                        Memuat pertanyaan...
+                    </h2>
+
+                    <!-- Hint Link -->
+                    <div class="mb-6">
+                        <button onclick="toggleHint()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 transition">
+                            <i class="fa-regular fa-lightbulb"></i> Butuh Petunjuk?
+                        </button>
+                        <div id="hint-text" class="hidden mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 leading-relaxed fade-in">
+                            <!-- Hint content -->
+                        </div>
+                    </div>
+
+                    <!-- Options Container (Single Column GeoMaster Style) -->
+                    <div id="options-container" class="space-y-3 mb-6">
+                        <!-- Options buttons injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Feedback Box -->
+                <div id="feedback-box" class="hidden rounded-xl p-4 mb-4 border transition-all text-sm">
+                    <div class="font-bold flex items-center gap-2 mb-1" id="feedback-title">
+                        <i class="fa-solid fa-circle-check"></i> <span>Jawaban Benar!</span>
+                    </div>
+                    <p id="feedback-desc" class="text-slate-600 text-xs sm:text-sm leading-relaxed"></p>
+                </div>
+
+                <!-- Nav Buttons Bottom -->
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                    <button onclick="prevQuestion()" id="btn-prev" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-arrow-left"></i> Sebelumnya
+                    </button>
+                    <button onclick="nextQuestion()" id="btn-next" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-2 shadow-md shadow-indigo-200 disabled:opacity-40 disabled:cursor-not-allowed">
+                        Selanjutnya <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-3 mt-6 text-center text-xs text-slate-400">
+        GeoMaster 3D • Kuis Interaktif Bangun Ruang Sisi Datar
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // High-contrast SVG Vector Diagrams suited for Dark Blue Canvas (#0f172a)
+        const shapeSVGs = {
+            kubus: `
+                <svg viewBox="0 0 200 180" class="w-52 h-44 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                    <polygon points="45,60 110,60 110,125 45,125" fill="#6366f1" fill-opacity="0.25"/>
+                    <polygon points="45,60 90,20 155,20 110,60" fill="#818cf8" fill-opacity="0.35"/>
+                    <polygon points="110,60 155,20 155,85 110,125" fill="#4f46e5" fill-opacity="0.45"/>
+                    <line x1="45" y1="125" x2="90" y2="85" stroke="#a5b4fc" stroke-width="2" stroke-dasharray="4,4"/>
+                    <line x1="90" y1="85" x2="155" y2="85" stroke="#a5b4fc" stroke-width="2" stroke-dasharray="4,4"/>
+                    <line x1="90" y1="85" x2="90" y2="20" stroke="#a5b4fc" stroke-width="2" stroke-dasharray="4,4"/>
+                    <polygon points="45,60 110,60 110,125 45,125" fill="none" stroke="#818cf8" stroke-width="2.5"/>
+                    <line x1="45" y1="60" x2="90" y2="20" stroke="#818cf8" stroke-width="2.5"/>
+                    <line x1="110" y1="60" x2="155" y2="20" stroke="#818cf8" stroke-width="2.5"/>
+                    <line x1="110" y1="125" x2="155" y2="85" stroke="#818cf8" stroke-width="2.5"/>
+                    <line x1="90" y1="20" x2="155" y2="20" stroke="#818cf8" stroke-width="2.5"/>
+                    <line x1="155" y1="20" x2="155" y2="85" stroke="#818cf8" stroke-width="2.5"/>
+                    <text x="75" y="145" fill="#f59e0b" font-weight="bold" font-size="14">s</text>
+                </svg>`,
+            balok: `
+                <svg viewBox="0 0 220 160" class="w-60 h-44 drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                    <polygon points="25,60 135,60 135,115 25,115" fill="#3b82f6" fill-opacity="0.25"/>
+                    <polygon points="25,60 75,25 185,25 135,60" fill="#60a5fa" fill-opacity="0.35"/>
+                    <polygon points="135,60 185,25 185,80 135,115" fill="#2563eb" fill-opacity="0.45"/>
+                    <line x1="25" y1="115" x2="75" y2="80" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,4"/>
+                    <line x1="75" y1="80" x2="185" y2="80" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,4"/>
+                    <line x1="75" y1="80" x2="75" y2="25" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,4"/>
+                    <polygon points="25,60 135,60 135,115 25,115" fill="none" stroke="#60a5fa" stroke-width="2.5"/>
+                    <line x1="25" y1="60" x2="75" y2="25" stroke="#60a5fa" stroke-width="2.5"/>
+                    <line x1="135" y1="60" x2="185" y2="25" stroke="#60a5fa" stroke-width="2.5"/>
+                    <line x1="135" y1="115" x2="185" y2="80" stroke="#60a5fa" stroke-width="2.5"/>
+                    <line x1="75" y1="25" x2="185" y2="25" stroke="#60a5fa" stroke-width="2.5"/>
+                    <line x1="185" y1="25" x2="185" y2="80" stroke="#60a5fa" stroke-width="2.5"/>
+                    <text x="80" y="133" fill="#f59e0b" font-weight="bold" font-size="13">p</text>
+                    <text x="165" y="105" fill="#f59e0b" font-weight="bold" font-size="13">l</text>
+                    <text x="10" y="90" fill="#f59e0b" font-weight="bold" font-size="13">t</text>
+                </svg>`,
+            prisma: `
+                <svg viewBox="0 0 220 160" class="w-56 h-44 drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                    <polygon points="10,135 85,145 195,115 120,105" fill="#3b82f6" fill-opacity="0.15"></polygon>
+                    <polygon points="10,135 85,145 50,50" fill="#93c5fd" fill-opacity="0.4" stroke="#60a5fa" stroke-width="2.5"></polygon>
+                    <polygon points="50,50 85,145 195,115 160,20" fill="#3b82f6" fill-opacity="0.35" stroke="#60a5fa" stroke-width="2.5"></polygon>
+                    <line x1="160" y1="20" x2="195" y2="115" stroke="#60a5fa" stroke-width="2.5"></line>
+                    <line x1="10" y1="135" x2="120" y2="105" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,4"></line>
+                    <line x1="120" y1="105" x2="195" y2="115" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,4"></line>
+                    <line x1="50" y1="50" x2="160" y2="20" stroke="#60a5fa" stroke-width="2.5"></line>
+                    <line x1="160" y1="20" x2="120" y2="105" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,4"></line>
+                    <text x="45" y="148" fill="#f59e0b" font-weight="bold" font-size="13">a</text>
+                    <text x="115" y="32" fill="#f59e0b" font-weight="bold" font-size="13">t</text>
+                </svg>`
+        };
+
+        // Complete 60 Question Data Bank
+        let rawQuestions = [];
+
+        function generateQuestionBank() {
+            let idCounter = 1;
+            let questions = [];
+
+            // Helper Generator for Kubus
+            for (let i = 1; i <= 10; i++) {
+                let s = 3 + i;
+                let vol = s * s * s;
+                let opts = [vol, vol + 15, vol - 20, vol + 35].map(v => `Volume = ${v} cm³`);
+                let correctIdx = (i * 3) % 4;
+                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+
+                questions.push({
+                    id: idCounter++,
+                    type: 'kubus',
+                    sub: 'Volume',
+                    q: `Sebuah kubus memiliki panjang rusuk ${s} cm. Berapakah volume kubus tersebut?`,
+                    opts: opts,
+                    correct: correctIdx,
+                    exp: `Volume Kubus = s³ = ${s}³ = ${vol} cm³.`
+                });
+            }
+
+            for (let i = 1; i <= 10; i++) {
+                let s = 4 + i;
+                let lp = 6 * s * s;
+                let opts = [lp - 24, lp, lp + 30, lp + 48].map(v => `Luas Permukaan = ${v} cm²`);
+                let correctIdx = (i * 2 + 1) % 4;
+                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+
+                questions.push({
+                    id: idCounter++,
+                    type: 'kubus',
+                    sub: 'Luas Permukaan',
+                    q: `Hitunglah luas permukaan kubus yang memiliki panjang rusuk ${s} cm!`,
+                    opts: opts,
+                    correct: correctIdx,
+                    exp: `Luas Permukaan Kubus = 6 × s² = 6 × (${s}²) = 6 × ${s*s} = ${lp} cm².`
+                });
+            }
+
+            // Helper Generator for Balok
+            for (let i = 1; i <= 10; i++) {
+                let p = 5 + i, l = 4 + (i % 3), t = 3 + (i % 2);
+                let vol = p * l * t;
+                let opts = [vol + 10, vol - 15, vol, vol + 25].map(v => `Volume = ${v} cm³`);
+                let correctIdx = (i + 2) % 4;
+                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+
+                questions.push({
+                    id: idCounter++,
+                    type: 'balok',
+                    sub: 'Volume',
+                    q: `Sebuah balok berukuran panjang ${p} cm, lebar ${l} cm, dan tinggi ${t} cm. Hitunglah volume balok tersebut!`,
+                    opts: opts,
+                    correct: correctIdx,
+                    exp: `Volume Balok = p × l × t = ${p} × ${l} × ${t} = ${vol} cm³.`
+                });
+            }
+
+            for (let i = 1; i <= 10; i++) {
+                let p = 6 + i, l = 5, t = 4;
+                let lp = 2 * (p*l + p*t + l*t);
+                let opts = [lp, lp + 16, lp - 20, lp + 32].map(v => `Luas Permukaan = ${v} cm²`);
+                let correctIdx = i % 4;
+                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+
+                questions.push({
+                    id: idCounter++,
+                    type: 'balok',
+                    sub: 'Luas Permukaan',
+                    q: `Berapakah luas permukaan balok jika diketahui panjang ${p} cm, lebar ${l} cm, dan tinggi ${t} cm?`,
+                    opts: opts,
+                    correct: correctIdx,
+                    exp: `Luas Permukaan = 2 × (pl + pt + lt) = 2 × (${p*l} + ${p*t} + ${l*t}) = ${lp} cm².`
+                });
+            }
+
+            // Helper Generator for Prisma Segitiga
+            for (let i = 1; i <= 10; i++) {
+                let a = 6, tAlas = 8, tPrisma = 10 + i;
+                let luasalas = 0.5 * a * tAlas;
+                let vol = luasalas * tPrisma;
+                let opts = [vol - 20, vol + 30, vol, vol + 50].map(v => `Volume = ${v} cm³`);
+                let correctIdx = (i * 3 + 1) % 4;
+                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+
+                questions.push({
+                    id: idCounter++,
+                    type: 'prisma',
+                    sub: 'Volume',
+                    q: `Sebuah prisma segitiga siku-siku memiliki alas ${a} cm, tinggi alas ${tAlas} cm, dan tinggi prisma ${tPrisma} cm. Tentukan volume prisma!`,
+                    opts: opts,
+                    correct: correctIdx,
+                    exp: `Volume Prisma = Luas Alas × Tinggi Prisma = (1/2 × ${a} × ${tAlas}) × ${tPrisma} = ${vol} cm³.`
+                });
+            }
+
+            for (let i = 1; i <= 10; i++) {
+                let a = 3, b = 4, c = 5; // segitiga siku-siku 3,4,5
+                let tPrisma = 8 + i;
+                let luasAlas = 0.5 * a * b; // 6
+                let kelilingAlas = a + b + c; // 12
+                let lp = (2 * luasAlas) + (kelilingAlas * tPrisma);
+                let opts = [lp + 12, lp - 10, lp + 24, lp].map(v => `Luas Permukaan = ${v} cm²`);
+                let correctIdx = (i + 3) % 4;
+                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+
+                questions.push({
+                    id: idCounter++,
+                    type: 'prisma',
+                    sub: 'Luas Permukaan',
+                    q: `Prisma segitiga siku-siku memiliki sisi alas ${a} cm, ${b} cm, ${c} cm dan tinggi prisma ${tPrisma} cm. Hitung luas permukaannya!`,
+                    opts: opts,
+                    correct: correctIdx,
+                    exp: `Luas Permukaan = (2 × Luas Alas) + (Keliling Alas × t) = (2 × ${luasAlas}) + (${kelilingAlas} × ${tPrisma}) = ${lp} cm².`
+                });
+            }
+
+            return questions;
+        }
+
+        // Global State Variables
+        let questions = [];
+        let filteredQuestions = [];
+        let currentIndex = 0;
+        let currentFilter = 'all';
+        let userAnswers = {};
+
+        // Highlight Numbers helper like GeoMaster
+        function formatQuestionText(text) {
+            return text.replace(/(\d+(\.\d+)?)/g, '<span class="text-indigo-600 font-extrabold">$1</span>');
+        }
+
+        // Toggle Hint Visibility
+        function toggleHint() {
+            const hintBox = document.getElementById('hint-text');
+            hintBox.classList.toggle('hidden');
+        }
+
+        // Filter Handlers
+        function setFilter(filter) {
+            currentFilter = filter;
+            ['all', 'kubus', 'balok', 'prisma'].forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (f === filter) {
+                    btn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow-sm";
+                } else {
+                    btn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold transition bg-slate-100 text-slate-600 hover:bg-slate-200";
+                }
+            });
+
+            if (filter === 'all') {
+                filteredQuestions = [...questions];
+            } else {
+                filteredQuestions = questions.filter(q => q.type === filter);
+            }
+
+            currentIndex = 0;
+            loadQuestion(0);
+        }
+
+        // Render Current Question in GeoMaster UI Style
+        function loadQuestion(index) {
+            if (index < 0 || index >= filteredQuestions.length) return;
+            currentIndex = index;
+            const q = filteredQuestions[currentIndex];
+
+            // Render SVG Diagram based on question type
+            const shapeContainer = document.getElementById('shape-illustration');
+            shapeContainer.innerHTML = shapeSVGs[q.type] || '';
+
+            // Update Badges
+            let typeName = q.type === 'kubus' ? 'KUBUS' : (q.type === 'balok' ? 'BALOK' : 'PRISMA SEGITIGA');
+            document.getElementById('canvas-badge-shape').innerText = typeName;
+            document.getElementById('canvas-badge-sub').innerText = q.sub;
+
+            // Question Header & Highlighted Text
+            document.getElementById('current-q-num').innerText = currentIndex + 1;
+            document.getElementById('total-filtered-num').innerText = filteredQuestions.length;
+            document.getElementById('question-text').innerHTML = formatQuestionText(q.q);
+
+            // Hint Content
+            document.getElementById('hint-text').innerText = `Gunakan rumus ${q.sub} ${typeName.toLowerCase()}: ${q.sub === 'Volume' ? 'Perkalian dimensi bangun' : 'Jumlahkan seluruh area bidang sisi'}.`;
+            document.getElementById('hint-text').classList.add('hidden');
+
+            // Render Options in GeoMaster Style
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const isAnswered = userAnswers.hasOwnProperty(q.id);
+            const selectedOpt = isAnswered ? userAnswers[q.id] : null;
+            const labels = ['A', 'B', 'C', 'D'];
+
+            q.opts.forEach((optText, i) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between gap-4 cursor-pointer ";
+                
+                const highlightedOpt = formatQuestionText(optText);
+
+                if (!isAnswered) {
+                    btn.className += "bg-white border-slate-200 hover:border-indigo-400 hover:bg-slate-50/80 text-slate-700 shadow-sm";
+                    btn.onclick = () => handleSelectOption(q.id, i);
+                } else {
+                    btn.disabled = true;
+                    if (i === q.correct) {
+                        btn.className += "bg-emerald-50/90 border-emerald-500 text-emerald-900 font-medium shadow-sm";
+                    } else if (i === selectedOpt) {
+                        btn.className += "bg-rose-50/90 border-rose-400 text-rose-900 font-medium";
+                    } else {
+                        btn.className += "bg-slate-50 border-slate-200 text-slate-400 opacity-60";
+                    }
+                }
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <span class="w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-sm shrink-0 ${isAnswered && i === q.correct ? 'bg-emerald-500 text-white border-emerald-500' : (isAnswered && i === selectedOpt ? 'bg-rose-500 text-white border-rose-500' : 'bg-slate-100 border-slate-200 text-slate-600')}">${labels[i]}</span>
+                        <span class="text-sm font-semibold">${highlightedOpt}</span>
+                    </div>
+                    ${isAnswered && i === q.correct ? '<i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>' : ''}
+                    ${isAnswered && i === selectedOpt && i !== q.correct ? '<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>' : ''}
+                `;
+
+                container.appendChild(btn);
+            });
+
+            // Feedback Box Handling
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackDesc = document.getElementById('feedback-desc');
+
+            if (isAnswered) {
+                feedbackBox.classList.remove('hidden');
+                if (selectedOpt === q.correct) {
+                    feedbackBox.className = "rounded-xl p-4 mb-4 border transition-all text-sm bg-emerald-50 border-emerald-200 text-emerald-900 fade-in";
+                    feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Jawaban Benar!`;
+                } else {
+                    feedbackBox.className = "rounded-xl p-4 mb-4 border transition-all text-sm bg-rose-50 border-rose-200 text-rose-900 fade-in";
+                    feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600"></i> Jawaban Kurang Tepat!`;
+                }
+                feedbackDesc.innerHTML = `<strong>Pembahasan:</strong> ${q.exp}`;
+            } else {
+                feedbackBox.classList.add('hidden');
+            }
+
+            // Button Prev & Next States
+            document.getElementById('btn-prev').disabled = (currentIndex === 0);
+            document.getElementById('btn-next').disabled = (currentIndex === filteredQuestions.length - 1);
+
+            renderNavigationGrid();
+        }
+
+        // Option Click Handler
+        function handleSelectOption(qId, selectedIdx) {
+            userAnswers[qId] = selectedIdx;
+            try {
+                localStorage.setItem('user_answers_v2', JSON.stringify(userAnswers));
+            } catch(e){}
+
+            updateStats();
+            loadQuestion(currentIndex);
+        }
+
+        // Update Score & Progress Stats
+        function updateStats() {
+            const totalQuestions = questions.length;
+            const answeredKeys = Object.keys(userAnswers);
+            const answeredCount = answeredKeys.length;
+
+            let correctCount = 0;
+            answeredKeys.forEach(qId => {
+                const q = questions.find(item => item.id == qId);
+                if (q && userAnswers[qId] === q.correct) {
+                    correctCount++;
+                }
+            });
+
+            document.getElementById('score-text').innerText = `${correctCount} / ${totalQuestions}`;
+            
+            const progressPercent = Math.round((answeredCount / totalQuestions) * 100);
+            document.getElementById('progress-bar-fill').style.width = `${progressPercent}%`;
+            document.getElementById('progress-percent').innerText = `${progressPercent}%`;
+        }
+
+        // Navigation Handlers
+        function nextQuestion() {
+            if (currentIndex < filteredQuestions.length - 1) {
+                loadQuestion(currentIndex + 1);
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                loadQuestion(currentIndex - 1);
+            }
+        }
+
+        // Render Navigation Grid Buttons
+        function renderNavigationGrid() {
+            const grid = document.getElementById('numbers-grid');
+            grid.innerHTML = '';
+
+            filteredQuestions.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                const isAnswered = userAnswers.hasOwnProperty(q.id);
+                const isCorrect = isAnswered && userAnswers[q.id] === q.correct;
+
+                let stateClass = "bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200";
+                if (isAnswered) {
+                    if (isCorrect) {
+                        stateClass = "bg-emerald-500 text-white font-bold border-emerald-600";
+                    } else {
+                        stateClass = "bg-rose-500 text-white font-bold border-rose-600";
+                    }
+                }
+
+                if (idx === currentIndex) {
+                    stateClass += " ring-2 ring-indigo-600 ring-offset-2";
+                }
+
+                btn.className = `h-9 rounded-lg text-xs font-semibold transition border flex items-center justify-center cursor-pointer ${stateClass}`;
+                btn.innerText = idx + 1;
+                btn.onclick = () => loadQuestion(idx);
+
+                grid.appendChild(btn);
+            });
+        }
+
+        // Reset Quiz Handler
+        function resetQuiz() {
+            if (confirm("Apakah Anda yakin ingin menghapus semua jawaban dan mengulang kuis dari awal?")) {
+                userAnswers = {};
+                try {
+                    localStorage.removeItem('user_answers_v2');
+                } catch(e){}
+                updateStats();
+                loadQuestion(0);
+            }
+        }
+
+        // Keyboard Navigation Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                nextQuestion();
+            } else if (e.key === 'ArrowLeft') {
+                prevQuestion();
+            }
+        });
+
+        // App Initialization
+        window.onload = function() {
+            questions = generateQuestionBank();
+            try {
+                const saved = localStorage.getItem('user_answers_v2');
+                if (saved) {
+                    userAnswers = JSON.parse(saved);
+                }
+            } catch(e){}
+
+            setFilter('all');
+            updateStats();
+        };
+    </script>
+</body>
+</html>
