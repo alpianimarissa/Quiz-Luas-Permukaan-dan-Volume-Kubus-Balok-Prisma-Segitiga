@@ -246,118 +246,178 @@
             let idCounter = 1;
             let questions = [];
 
-            // Helper Generator for Kubus
+            // Helper to shuffle options array while keeping track of the correct index
+            function createShuffledOptions(correctValueText, wrongValuesTextArray) {
+                let allOpts = [
+                    { text: correctValueText, isCorrect: true },
+                    ...wrongValuesTextArray.map(w => ({ text: w, isCorrect: false }))
+                ];
+                
+                // Deterministic pseudo-random shuffle based on idCounter to keep answers balanced & stable
+                for (let i = allOpts.length - 1; i > 0; i--) {
+                    const j = (idCounter * 7 + i * 3) % (i + 1);
+                    const temp = allOpts[i];
+                    allOpts[i] = allOpts[j];
+                    allOpts[j] = temp;
+                }
+
+                const optsStrings = allOpts.map(o => o.text);
+                const correctIdx = allOpts.findIndex(o => o.isCorrect);
+
+                return { opts: optsStrings, correct: correctIdx };
+            }
+
+            // 1. KUBUS VOLUME (10 Soal)
             for (let i = 1; i <= 10; i++) {
                 let s = 3 + i;
                 let vol = s * s * s;
-                let opts = [vol, vol + 15, vol - 20, vol + 35].map(v => `Volume = ${v} cm³`);
-                let correctIdx = (i * 3) % 4;
-                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+                
+                let correctText = `Volume = ${vol} cm³`;
+                let wrongTexts = [
+                    `Volume = ${vol + 15} cm³`,
+                    `Volume = ${Math.max(1, vol - 20)} cm³`,
+                    `Volume = ${vol + 35} cm³`
+                ];
+
+                let shuf = createShuffledOptions(correctText, wrongTexts);
 
                 questions.push({
                     id: idCounter++,
                     type: 'kubus',
                     sub: 'Volume',
                     q: `Sebuah kubus memiliki panjang rusuk ${s} cm. Berapakah volume kubus tersebut?`,
-                    opts: opts,
-                    correct: correctIdx,
-                    exp: `Volume Kubus = s³ = ${s}³ = ${vol} cm³.`
+                    opts: shuf.opts,
+                    correct: shuf.correct,
+                    exp: `Volume Kubus = s³ = ${s}³ = ${s} × ${s} × ${s} = ${vol} cm³.`
                 });
             }
 
+            // 2. KUBUS LUAS PERMUKAAN (10 Soal)
             for (let i = 1; i <= 10; i++) {
                 let s = 4 + i;
                 let lp = 6 * s * s;
-                let opts = [lp - 24, lp, lp + 30, lp + 48].map(v => `Luas Permukaan = ${v} cm²`);
-                let correctIdx = (i * 2 + 1) % 4;
-                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+
+                let correctText = `Luas Permukaan = ${lp} cm²`;
+                let wrongTexts = [
+                    `Luas Permukaan = ${lp - 24} cm²`,
+                    `Luas Permukaan = ${lp + 30} cm²`,
+                    `Luas Permukaan = ${lp + 48} cm²`
+                ];
+
+                let shuf = createShuffledOptions(correctText, wrongTexts);
 
                 questions.push({
                     id: idCounter++,
                     type: 'kubus',
                     sub: 'Luas Permukaan',
                     q: `Hitunglah luas permukaan kubus yang memiliki panjang rusuk ${s} cm!`,
-                    opts: opts,
-                    correct: correctIdx,
+                    opts: shuf.opts,
+                    correct: shuf.correct,
                     exp: `Luas Permukaan Kubus = 6 × s² = 6 × (${s}²) = 6 × ${s*s} = ${lp} cm².`
                 });
             }
 
-            // Helper Generator for Balok
+            // 3. BALOK VOLUME (10 Soal)
             for (let i = 1; i <= 10; i++) {
                 let p = 5 + i, l = 4 + (i % 3), t = 3 + (i % 2);
                 let vol = p * l * t;
-                let opts = [vol + 10, vol - 15, vol, vol + 25].map(v => `Volume = ${v} cm³`);
-                let correctIdx = (i + 2) % 4;
-                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+
+                let correctText = `Volume = ${vol} cm³`;
+                let wrongTexts = [
+                    `Volume = ${vol + 12} cm³`,
+                    `Volume = ${Math.max(1, vol - 15)} cm³`,
+                    `Volume = ${vol + 24} cm³`
+                ];
+
+                let shuf = createShuffledOptions(correctText, wrongTexts);
 
                 questions.push({
                     id: idCounter++,
                     type: 'balok',
                     sub: 'Volume',
                     q: `Sebuah balok berukuran panjang ${p} cm, lebar ${l} cm, dan tinggi ${t} cm. Hitunglah volume balok tersebut!`,
-                    opts: opts,
-                    correct: correctIdx,
+                    opts: shuf.opts,
+                    correct: shuf.correct,
                     exp: `Volume Balok = p × l × t = ${p} × ${l} × ${t} = ${vol} cm³.`
                 });
             }
 
+            // 4. BALOK LUAS PERMUKAAN (10 Soal)
             for (let i = 1; i <= 10; i++) {
                 let p = 6 + i, l = 5, t = 4;
                 let lp = 2 * (p*l + p*t + l*t);
-                let opts = [lp, lp + 16, lp - 20, lp + 32].map(v => `Luas Permukaan = ${v} cm²`);
-                let correctIdx = i % 4;
-                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+
+                let correctText = `Luas Permukaan = ${lp} cm²`;
+                let wrongTexts = [
+                    `Luas Permukaan = ${lp + 16} cm²`,
+                    `Luas Permukaan = ${lp - 20} cm²`,
+                    `Luas Permukaan = ${lp + 32} cm²`
+                ];
+
+                let shuf = createShuffledOptions(correctText, wrongTexts);
 
                 questions.push({
                     id: idCounter++,
                     type: 'balok',
                     sub: 'Luas Permukaan',
                     q: `Berapakah luas permukaan balok jika diketahui panjang ${p} cm, lebar ${l} cm, dan tinggi ${t} cm?`,
-                    opts: opts,
-                    correct: correctIdx,
-                    exp: `Luas Permukaan = 2 × (pl + pt + lt) = 2 × (${p*l} + ${p*t} + ${l*t}) = ${lp} cm².`
+                    opts: shuf.opts,
+                    correct: shuf.correct,
+                    exp: `Luas Permukaan = 2 × (p·l + p·t + l·t) = 2 × (${p*l} + ${p*t} + ${l*t}) = 2 × (${p*l + p*t + l*t}) = ${lp} cm².`
                 });
             }
 
-            // Helper Generator for Prisma Segitiga
+            // 5. PRISMA SEGITIGA VOLUME (10 Soal)
             for (let i = 1; i <= 10; i++) {
                 let a = 6, tAlas = 8, tPrisma = 10 + i;
-                let luasalas = 0.5 * a * tAlas;
-                let vol = luasalas * tPrisma;
-                let opts = [vol - 20, vol + 30, vol, vol + 50].map(v => `Volume = ${v} cm³`);
-                let correctIdx = (i * 3 + 1) % 4;
-                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+                let luasAlas = 0.5 * a * tAlas; // 24
+                let vol = luasAlas * tPrisma;
+
+                let correctText = `Volume = ${vol} cm³`;
+                let wrongTexts = [
+                    `Volume = ${vol - 24} cm³`,
+                    `Volume = ${vol + 36} cm³`,
+                    `Volume = ${vol + 48} cm³`
+                ];
+
+                let shuf = createShuffledOptions(correctText, wrongTexts);
 
                 questions.push({
                     id: idCounter++,
                     type: 'prisma',
                     sub: 'Volume',
                     q: `Sebuah prisma segitiga siku-siku memiliki alas ${a} cm, tinggi alas ${tAlas} cm, dan tinggi prisma ${tPrisma} cm. Tentukan volume prisma!`,
-                    opts: opts,
-                    correct: correctIdx,
-                    exp: `Volume Prisma = Luas Alas × Tinggi Prisma = (1/2 × ${a} × ${tAlas}) × ${tPrisma} = ${vol} cm³.`
+                    opts: shuf.opts,
+                    correct: shuf.correct,
+                    exp: `Volume Prisma = Luas Alas × Tinggi Prisma = (½ × ${a} × ${tAlas}) × ${tPrisma} = ${luasAlas} × ${tPrisma} = ${vol} cm³.`
                 });
             }
 
+            // 6. PRISMA SEGITIGA LUAS PERMUKAAN (10 Soal)
             for (let i = 1; i <= 10; i++) {
                 let a = 3, b = 4, c = 5; // segitiga siku-siku 3,4,5
                 let tPrisma = 8 + i;
                 let luasAlas = 0.5 * a * b; // 6
                 let kelilingAlas = a + b + c; // 12
                 let lp = (2 * luasAlas) + (kelilingAlas * tPrisma);
-                let opts = [lp + 12, lp - 10, lp + 24, lp].map(v => `Luas Permukaan = ${v} cm²`);
-                let correctIdx = (i + 3) % 4;
-                let temp = opts[0]; opts[0] = opts[correctIdx]; opts[correctIdx] = temp;
+
+                let correctText = `Luas Permukaan = ${lp} cm²`;
+                let wrongTexts = [
+                    `Luas Permukaan = ${lp + 12} cm²`,
+                    `Luas Permukaan = ${lp - 10} cm²`,
+                    `Luas Permukaan = ${lp + 24} cm²`
+                ];
+
+                let shuf = createShuffledOptions(correctText, wrongTexts);
 
                 questions.push({
                     id: idCounter++,
                     type: 'prisma',
                     sub: 'Luas Permukaan',
                     q: `Prisma segitiga siku-siku memiliki sisi alas ${a} cm, ${b} cm, ${c} cm dan tinggi prisma ${tPrisma} cm. Hitung luas permukaannya!`,
-                    opts: opts,
-                    correct: correctIdx,
-                    exp: `Luas Permukaan = (2 × Luas Alas) + (Keliling Alas × t) = (2 × ${luasAlas}) + (${kelilingAlas} × ${tPrisma}) = ${lp} cm².`
+                    opts: shuf.opts,
+                    correct: shuf.correct,
+                    exp: `Luas Permukaan = (2 × Luas Alas) + (Keliling Alas × t) = (2 × ${luasAlas}) + (${kelilingAlas} × ${tPrisma}) = 12 + ${kelilingAlas * tPrisma} = ${lp} cm².`
                 });
             }
 
